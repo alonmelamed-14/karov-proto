@@ -108,6 +108,7 @@ svg.i{width:1.6em;height:1.6em;flex:none;stroke:currentColor;fill:none;stroke-wi
 .row .sub b{color:var(--ink)}
 .row .cnt{background:var(--badge);color:#fff;border-radius:1em;min-width:1.9em;height:1.9em;display:grid;place-items:center;font-weight:700;padding:0 .4em;font-variant-numeric:tabular-nums}
 .letter{font-family:var(--display);font-size:calc(22px*var(--scale));color:var(--muted);margin-top:4px}
+.act.listening{background:var(--end)}
 .heard{font-size:calc(20px*var(--scale));background:var(--surface);border-radius:14px;padding:12px 14px;box-shadow:0 0 0 2px var(--line) inset}
 
 /* media viewer */
@@ -219,9 +220,11 @@ function avatar(p,isGroup){return `<div class="avatar" style="background:${hashC
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2800)}
 document.documentElement.style.setProperty('--scale',S.scale);
 let timers=[],curStream=null;function clearTimers(){timers.forEach(x=>{clearInterval(x);clearTimeout(x)});timers=[];stopAudio();if(curStream){curStream.getTracks().forEach(tr=>tr.stop());curStream=null}}
-const demo='<p class="demo">אב טיפוס לבדיקה · שום שיחה או הודעה לא נשלחות באמת</p>';
+const VERSION='2.3';
+const demo=`<p class="demo">אב טיפוס לבדיקה · שום שיחה או הודעה לא נשלחות באמת · גרסה ${VERSION}</p>`;
 const allPeople=()=>S.groups.flatMap(g=>g.people);
-const othersAsPeople=()=>S.others.map(n=>({id:'o:'+n,name:n,rel:'',photo:''}));
+const oName=o=>typeof o==='string'?o:o.name;
+const othersAsPeople=()=>S.others.map(o=>({id:'o:'+oName(o),name:oName(o),rel:'',photo:'',tel:o.tel||''}));
 const findPerson=id=>allPeople().find(p=>p.id==id)||othersAsPeople().find(p=>p.id==id);
 
 /* ---------- simulated incoming WhatsApp state (not persisted) ---------- */
@@ -366,7 +369,7 @@ function contacts(heard){
   $app.innerHTML=`<button class="back" data-go="home">${ICON.back}חזרה</button>
    <h1 style="font-size:calc(34px*var(--scale))">כל אנשי הקשר</h1>
    <button class="act msgb" id="vs">${ICON.voice}<span>${t('למי את רוצה להתקשר?','למי אתה רוצה להתקשר?')}<small>${t('לחצי ואמרי שם','לחץ ואמור שם')}</small></span></button>
-   ${note}${heard?'<button class="plain small" data-go="contacts">להציג את כולם</button>':''}
+   <div class="heard" id="live" hidden></div>${note}${heard?'<button class="plain small" data-go="contacts">להציג את כולם</button>':''}
    <div class="list">${shown.map(p=>{const L=initial(p.name);const hdr=(!heard&&L!==last)?`<div class="letter">${esc(L)}</div>`:'';last=L;
      return hdr+`<button class="row" data-go="person" data-id="${esc(p.id)}">${avatar(p)}<span class="txt"><span class="nm">${esc(p.name)}</span>${p.rel?`<span class="sub">${esc(p.rel)}</span>`:''}</span></button>`}).join('')}</div>`;
   document.getElementById('vs').onclick=voiceSearch;
@@ -380,15 +383,21 @@ function matchName(q,list){const qs=norm(q).split(' ').filter(w=>w.length>1);
 function voiceSearch(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast('חיפוש קולי לא זמין כאן. נסה ב-Chrome בטלפון');log('חיפוש קולי: לא נתמך',true);return}
-  const r=new SR();r.lang='he-IL';r.interimResults=false;r.maxAlternatives=3;
-  const b=document.getElementById('vs');b.querySelector('span').innerHTML=`${t('מקשיבה','מקשיב')}…<small>${t('אמרי את השם','אמור את השם')}</small>`;let got=false;
-  r.onresult=e=>{got=true;const alts=[...e.results[0]].map(a=>a.transcript);log('חיפוש קולי: '+alts[0]);
-    const list=[...allPeople(),...othersAsPeople()];let pick=alts[0];for(const a of alts){if(matchName(a,list).length){pick=a;break}}contacts(pick)};
-  r.onerror=e=>{got=true;toast(e.error==='not-allowed'?'צריך לאשר גישה למיקרופון':'לא שמעתי. אפשר לנסות שוב');contacts()};
-  r.onend=()=>{if(!got)contacts()};
-  try{r.start()}catch(e){toast('לא הצלחנו להפעיל את המיקרופון')}
+  const r=new SR();r.lang='he-IL';r.interimResults=true;r.maxAlternatives=3;r.continuous=false;
+  const b=document.getElementById('vs'),live=document.getElementById('live');
+  const label=(a,sm)=>{const sp=b&&b.querySelector('span');if(sp)sp.innerHTML=`${a}<small>${sm}</small>`};
+  label(`${t('מקשיבה','מקשיב')}…`,t('אמרי שם אחד','אמור שם אחד'));b.classList.add('listening');
+  let got=false;const to=setTimeout(()=>{try{r.stop()}catch(e){}},10000);
+  r.onresult=e=>{const last=e.results[e.results.length-1];const txt=[...e.results].map(x=>x[0].transcript).join(' ');
+    live.hidden=false;live.innerHTML=`${t('שומעת','שומע')}: <b>${esc(txt)}</b>`;
+    if(last.isFinal&&!got){got=true;clearTimeout(to);const alts=[...last].map(a=>a.transcript);log('חיפוש קולי: '+alts[0]);
+      const list=[...allPeople(),...othersAsPeople()];let pick=alts[0];for(const a of alts){if(matchName(a,list).length){pick=a;break}}
+      try{r.abort()}catch(err){}contacts(pick)}};
+  r.onspeechend=()=>{if(!got)label(`${t('מחפשת','מחפש')}…`,'רגע אחד')};
+  r.onerror=e=>{if(got)return;got=true;clearTimeout(to);toast(e.error==='not-allowed'?'צריך לאשר גישה למיקרופון':e.error==='no-speech'?'לא שמעתי. אפשר לנסות שוב':'לא הצלחתי לזהות. אפשר לנסות שוב');contacts()};
+  r.onend=()=>{clearTimeout(to);if(!got)contacts()};
+  try{r.start()}catch(e){toast('לא הצלחנו להפעיל את המיקרופון');contacts()}
 }
-
 let mIdx=0,vidTimer=null;
 function media(){
   clearTimers();if(!MEDIA)MEDIA=buildMedia();mediaSeen=true;
@@ -422,7 +431,7 @@ function family(){
   const misses=LOG.filter(l=>l.miss).length, tasks=LOG.filter(l=>!l.miss&&!l.msg.startsWith('חזרה')).length;
   $app.innerHTML=`<div class="fam">
    <button class="back" data-go="home" style="font-size:20px">${ICON.back}חזרה למסך הראשי</button>
-   <h1>הגדרות משפחה</h1>
+   <h1>הגדרות משפחה</h1><p class="hint" style="margin:0">גרסה ${VERSION}</p>
    <div class="card"><h2>יומן בדיקה</h2>
     <div class="stats"><div><b>${tasks}</b>פעולות</div><div><b>${misses}</b>החטאות</div><div><b>${LOG.filter(l=>l.msg.startsWith('חזרה')).length}</b>חזרות אחורה</div></div>
     <ul class="log">${LOG.map(l=>`<li class="${l.miss?'miss':''}">${l.t} · ${esc(l.msg)}</li>`).join('')||'<li>עוד אין רישומים.</li>'}</ul>
@@ -437,6 +446,10 @@ function family(){
        <button class="sbtn danger" data-del="${p.id}">מחיקה</button></div>${p.tel?`<span></span><span class="hint" dir="ltr" style="text-align:end">${esc(p.tel)}</span>`:''}</div>`).join('')}
      ${g.people.length<4?`<div class="seg">${CAN_PICK?`<button class="sbtn" data-pickadd="${g.id}">הוספה מאנשי הקשר</button>`:''}<button class="sbtn" data-add="${g.id}">הוספה ידנית</button></div>`:'<p class="hint">עד 4 אנשים בקבוצה</p>'}</div>`).join('')}
    ${CAN_PICK?'':'<p class="hint" style="margin:0">בחירה מאנשי הקשר זמינה רק ב-Chrome בטלפון אנדרואיד, מהכתובת ב-GitHub Pages.</p>'}
+   <div class="card"><h2>אנשי קשר נוספים</h2><p class="hint">מופיעים רק ברשימה "כל אנשי הקשר", מעבר לקבוצות. ${S.others.length} כרגע. לחיצה על שם מסירה אותו.</p>
+    ${CAN_PICK?'<button class="sbtn" data-pickothers="1">הוספה מאנשי הקשר (אפשר לסמן הרבה)</button>':''}
+    <div class="seg">${S.others.map((o,i)=>`<button data-delother="${i}">${esc(oName(o))} ✕</button>`).join('')}</div>
+    ${S.others.length?'<button class="sbtn danger" data-clearothers="1">ניקוי כל הרשימה</button>':''}</div>
    <div class="card"><h2>אפליקציות במסך הראשי</h2><p class="hint">עד 6. ${S.apps.length} נבחרו.</p>
     <div class="seg">${CATALOG.map(a=>`<button data-appt="${a.k}" aria-pressed="${S.apps.includes(a.k)}">${a.n}</button>`).join('')}</div></div>
    <div class="card"><h2>תצוגה ופנייה</h2>
@@ -463,11 +476,12 @@ async function pickContacts(max){
   try{const avail=navigator.contacts.getProperties?await navigator.contacts.getProperties():['name','tel'];
     const props=['name','tel','icon'].filter(x=>avail.includes(x));
     const res=await navigator.contacts.select(props,{multiple:max>1});
-    return res.slice(0,max).filter(c=>c.name&&c.name[0]).map(c=>({name:c.name[0].trim(),tel:(c.tel&&c.tel[0])||'',icon:(c.icon&&c.icon[0])||null}));
-  }catch(e){toast('לא הצלחנו לפתוח את אנשי הקשר');return[]}}
-function applyContact(p,c,done){p.name=c.name;p.tel=c.tel;if(c.icon)shrink(c.icon,url=>{p.photo=url;save();done()});else{save();done()}}
-function shrink(file,cb){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');const s=320;c.width=c.height=s;
-  const m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);cb(c.toDataURL('image/jpeg',.82))};im.src=r.result};r.readAsDataURL(file)}
+    const out=(res||[]).slice(0,max).filter(c=>c.name&&c.name[0]).map(c=>({name:String(c.name[0]).trim(),tel:(c.tel&&c.tel[0])||'',icon:(c.icon&&c.icon[0])||null}));
+    log(`נבחרו ${out.length} אנשי קשר`);if(res&&res.length&&!out.length)toast('לאיש הקשר שנבחר אין שם');return out;
+  }catch(e){toast('שגיאה בבחירה: '+(e&&e.message||e));log('שגיאת בחירת אנשי קשר: '+(e&&e.message||e),true);return[]}}
+function applyContact(p,c,done){p.name=c.name;p.tel=c.tel;save();done();if(c.icon)shrink(c.icon,url=>{p.photo=url;save();done()},()=>log('תמונת איש קשר לא נטענה',true))}
+function shrink(file,cb,fail){const f=()=>{if(fail)fail()};const r=new FileReader();r.onerror=f;r.onload=()=>{const im=new Image();im.onerror=f;im.onload=()=>{try{const c=document.createElement('canvas');const sz=320;c.width=c.height=sz;
+  const m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,sz,sz);cb(c.toDataURL('image/jpeg',.82))}catch(e){f()}};im.src=r.result};try{r.readAsDataURL(file)}catch(e){f()}}
 
 function wireHold(){const b=document.getElementById('hold');if(!b)return;let h=null;
   const start=e=>{if(e.cancelable)e.preventDefault();if(h)return;b.classList.add('going');
@@ -501,9 +515,11 @@ $app.addEventListener('click',e=>{
   if(d.del){S.groups.forEach(g=>g.people=g.people.filter(p=>p.id!=d.del));save();family();return}
   if(d.rmph){findPerson(d.rmph).photo='';save();family();return}
   if(d.add){const g=S.groups.find(x=>x.id==d.add);g.people.push(mk('שם חדש',''));save();family();return}
-  if(d.pickadd){const g=S.groups.find(x=>x.id==d.pickadd);pickContacts(4-g.people.length).then(list=>{let left=list.length;if(!left)return;
-    list.forEach(c=>{const np=mk('','');g.people.push(np);applyContact(np,c,()=>{if(--left===0)family()})})});return}
-  if(d.pick){const pp=findPerson(d.pick);pickContacts(1).then(list=>{if(list[0])applyContact(pp,list[0],family)});return}
+  if(d.pickadd){const g=S.groups.find(x=>x.id==d.pickadd);pickContacts(4-g.people.length).then(list=>{list.forEach(c=>{const np=mk('','');g.people.push(np);applyContact(np,c,family)})});return}
+  if(d.pick){const pp=findPerson(d.pick);pickContacts(1).then(list=>{if(list[0]){applyContact(pp,list[0],family);toast('עודכן: '+list[0].name)}});return}
+  if(d.pickothers){pickContacts(300).then(list=>{const have=new Set(S.others.map(oName));let n=0;list.forEach(c=>{if(!have.has(c.name)){S.others.push({name:c.name,tel:c.tel});have.add(c.name);n++}});save();family();if(list.length)toast(`נוספו ${n} אנשי קשר`)});return}
+  if(d.delother!==undefined){S.others.splice(+d.delother,1);save();family();return}
+  if(d.clearothers){S.others=[];save();family();return}
   if(d.appt){const k=d.appt;if(S.apps.includes(k))S.apps=S.apps.filter(x=>x!==k);else if(S.apps.length<6)S.apps.push(k);else{toast('אפשר לבחור עד 6');return}save();family();return}
   const tnow=Date.now();
   const nav=d.go||d.tab!==undefined||d.nav;
