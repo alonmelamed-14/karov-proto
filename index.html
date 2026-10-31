@@ -224,7 +224,7 @@ function avatar(p,isGroup){return `<div class="avatar" style="background:${hashC
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2800)}
 document.documentElement.style.setProperty('--scale',S.scale);
 let timers=[],curStream=null;function clearTimers(){timers.forEach(x=>{clearInterval(x);clearTimeout(x)});timers=[];stopAudio();if(curStream){curStream.getTracks().forEach(tr=>tr.stop());curStream=null}}
-const VERSION='2.4';
+const VERSION='2.5';
 const demo=`<p class="demo">אב טיפוס לבדיקה · שום שיחה או הודעה לא נשלחות באמת · גרסה ${VERSION}</p>`;
 const allPeople=()=>S.groups.flatMap(g=>g.people);
 const oName=o=>typeof o==='string'?o:o.name;
@@ -482,7 +482,7 @@ async function pickContacts(max){
   let avail=['name','tel'];
   try{if(navigator.contacts.getProperties)avail=await navigator.contacts.getProperties()}catch(e){log('getProperties נכשל: '+(e&&e.message||e),true)}
   const tryPick=async props=>navigator.contacts.select(props,{multiple:max>1});
-  let res=null,props=['name','tel','icon'].filter(x=>avail.includes(x));
+  let res=null,props=['name','tel'].filter(x=>avail.includes(x));
   try{res=await tryPick(props)}
   catch(e){log('בורר נכשל ('+props.join(',')+'): '+(e&&e.name)+' '+(e&&e.message||''),true);
     try{props=['name','tel'];res=await tryPick(props)}catch(e2){log('בורר נכשל גם בלי תמונה: '+(e2&&e2.name)+' '+(e2&&e2.message||''),true);toast('שגיאה בבחירה: '+(e2&&e2.message||e2));return[]}}
