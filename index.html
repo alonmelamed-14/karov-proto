@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>קרוב</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14233a">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Secular+One&display=swap">
+<style>
+/* Layout: one phone-width column, centered on desktop; every screen is a stack of oversized, labeled targets. */
+:root{
+  --bg:#e9eef3; --surface:#ffffff; --ink:#14233a; --muted:#4a5a70; --line:#c9d3de;
+  --call:#1f7a4d; --video:#1d5fae; --voice:#a8580a; --end:#c0262d; --focus:#f2b705;
+  --chip:#dfe7f0;
+  --display:"Secular One","Rubik",system-ui,sans-serif;
+  --body:"Rubik",system-ui,"Segoe UI",Arial,sans-serif;
+  --scale:1;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1622; --surface:#18243a; --ink:#f1f5fa; --muted:#b4c2d4; --line:#2e3e57;
+  --call:#2f9d66; --video:#3b7fd1; --voice:#c9761f; --end:#d93a40; --chip:#22314b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1622; --surface:#18243a; --ink:#f1f5fa; --muted:#b4c2d4; --line:#2e3e57;
+  --call:#2f9d66; --video:#3b7fd1; --voice:#c9761f; --end:#d93a40; --chip:#22314b; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:calc(20px*var(--scale));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+*{box-sizing:border-box}
+#app{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:18px;padding-block:16px 24px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.demo{font-size:13px;color:var(--muted);text-align:center}
+h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.clock{font-family:var(--display);font-size:calc(52px*var(--scale));line-height:1;font-variant-numeric:tabular-nums}
+.date{color:var(--muted);font-size:calc(19px*var(--scale))}
+.section-label{font-size:calc(18px*var(--scale));color:var(--muted);font-weight:500}
+
+/* people */
+.people{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.person{background:var(--surface);border-radius:22px;padding:14px 10px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  box-shadow:0 1px 0 var(--line), 0 0 0 2px var(--line) inset}
+.avatar{width:100%;max-width:150px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;overflow:hidden;
+  font-family:var(--display);font-size:calc(54px*var(--scale));color:#fff}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.pname{font-size:calc(26px*var(--scale));font-weight:700;line-height:1.1}
+.prel{font-size:calc(17px*var(--scale));color:var(--muted);margin-top:-6px}
+
+/* apps */
+.apps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.app{background:var(--chip);border-radius:18px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  font-size:calc(18px*var(--scale));font-weight:500}
+.app svg{width:44px;height:44px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* big actions */
+.back{align-self:flex-start;background:var(--chip);border-radius:16px;padding:14px 22px;font-size:calc(22px*var(--scale));font-weight:700;display:flex;gap:10px;align-items:center}
+.hero{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.hero .avatar{max-width:190px}
+.hero h1{font-size:calc(40px*var(--scale))}
+.actions{display:flex;flex-direction:column;gap:14px}
+.act{border-radius:22px;padding:22px 20px;display:flex;align-items:center;gap:18px;color:#fff;font-size:calc(30px*var(--scale));font-weight:700;text-align:start;min-height:96px}
+.act svg{width:52px;height:52px;flex:none;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.act small{display:block;font-size:calc(17px*var(--scale));font-weight:400;opacity:.92}
+.video{background:var(--video)} .call{background:var(--call)} .voice{background:var(--voice)} .endb{background:var(--end)}
+
+/* call screen */
+.calling{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+.calling .avatar{max-width:220px;animation:pulse 1.6s ease-in-out infinite}
+.status{font-size:calc(26px*var(--scale));color:var(--muted);font-variant-numeric:tabular-nums}
+@keyframes pulse{50%{box-shadow:0 0 0 18px color-mix(in srgb,var(--video) 25%,transparent)}}
+.connected .avatar{animation:none}
+
+/* voice */
+.rec{width:min(240px,70vw);aspect-ratio:1;border-radius:50%;background:var(--voice);color:#fff;font-size:calc(28px*var(--scale));font-weight:700;
+  display:grid;place-items:center;align-self:center;padding:20px;text-align:center;line-height:1.2}
+.rec.on{background:var(--end);animation:pulse 1.2s infinite}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.plain{background:var(--chip);border-radius:20px;padding:20px;font-size:calc(26px*var(--scale));font-weight:700}
+
+/* family mode */
+.hold{margin-top:auto;align-self:center;background:transparent;color:var(--muted);font-size:15px;padding:10px 16px;border-radius:12px;position:relative;overflow:hidden;isolation:isolate}
+.hold i{position:absolute;inset:0;background:var(--chip);transform-origin:right;transform:scaleX(0);z-index:-1}
+.hold.going i{transition:transform 2s linear;transform:scaleX(1)}
+.fam{font-size:17px;display:flex;flex-direction:column;gap:14px}
+.fam h1{font-size:30px}
+.card{background:var(--surface);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 0 0 1px var(--line) inset}
+.card h2{font-size:21px}
+.edit{display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:center}
+.edit .avatar{font-size:24px}
+.edit input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.edit .ctl{display:flex;flex-wrap:wrap;gap:8px;grid-column:2}
+.sbtn{background:var(--chip);border-radius:10px;padding:8px 12px;font-size:15px}
+.sbtn.danger{color:var(--end)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{background:var(--chip);border-radius:10px;padding:8px 14px;font-size:16px}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-size:28px;font-family:var(--display);font-weight:400;font-variant-numeric:tabular-nums}
+.log{max-height:220px;overflow:auto;font-size:14px;color:var(--muted);margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums}
+.log li.miss{color:var(--end)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:14px 22px;border-radius:16px;font-size:20px;max-width:90vw;text-align:center}
+.flash{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 0 6px var(--end);opacity:0;transition:opacity .4s}
+.flash.on{opacity:1;transition:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div id="app" dir="rtl" lang="he"></div>
+<div class="flash" id="flash"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const ICON={
+ video:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg>',
+ call:'<svg viewBox="0 0 24 24"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 005 5L15 12l5 2v4a2 2 0 01-2 2A16 16 0 013 5a2 2 0 012-2z"/></svg>',
+ voice:'<svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 17v5M8 22h8"/></svg>',
+ end:'<svg viewBox="0 0 24 24"><path d="M3 15c5-5 13-5 18 0l-2 3-4-1v-3a10 10 0 00-6 0v3l-4 1z"/></svg>',
+ back:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
+ camera:'<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+ photos:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg>',
+ alarm:'<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M3 5l3-2M21 5l-3-2"/></svg>'
+};
+const COLORS=['#1d5fae','#1f7a4d','#8a3fa0','#a8580a','#0f7f86','#b23a5b','#55627a','#6a7d12'];
+const DEFAULT={
+ people:[
+  {id:1,name:'נועה',rel:'נכדה',photo:''},{id:2,name:'אלון',rel:'בן',photo:''},
+  {id:3,name:'מיכל',rel:'בת',photo:''},{id:4,name:'ד"ר כהן',rel:'רופא המשפחה',photo:''}],
+ apps:[{k:'camera',n:'מצלמה'},{k:'photos',n:'תמונות'},{k:'alarm',n:'שעון מעורר'}],
+ fem:true, scale:1, guard:true
+};
+const KEY='karov-proto-v1';
+let S; try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
+if(!S) S=structuredClone(DEFAULT);
+let LOG=[]; let taskStart=null;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const t=(f,m)=>S.fem?f:m;
+const $app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const now=()=>new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function log(msg,miss){LOG.unshift({t:now(),msg,miss:!!miss});if(LOG.length>200)LOG.pop()}
+function avatar(p,i){const c=COLORS[(p.id)%COLORS.length];
+  return `<div class="avatar" style="background:${c}">${p.photo?`<img alt="" src="${p.photo}">`:esc(p.name.replace(/^ד"ר\s*/,'').charAt(0))}</div>`}
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2600)}
+document.documentElement.style.setProperty('--scale',S.scale);
+
+let timers=[];function clearTimers(){timers.forEach(clearInterval);timers.forEach(clearTimeout);timers=[]}
+const demo='<p class="demo">אב טיפוס לבדיקה · שום שיחה או הודעה לא נשלחות באמת</p>';
+
+function home(){
+  clearTimers();
+  const d=new Date();
+  $app.innerHTML=`
+   <div class="top"><div class="clock" id="clk"></div><div class="date">${d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'})}</div></div>
+   <div class="section-label">${t('למי את רוצה לפנות?','למי אתה רוצה לפנות?')}</div>
+   <div class="people">${S.people.map(p=>`<button class="person" data-go="person" data-id="${p.id}">${avatar(p)}<span class="pname">${esc(p.name)}</span><span class="prel">${esc(p.rel)}</span></button>`).join('')}</div>
+   <div class="section-label">אפליקציות</div>
+   <div class="apps">${S.apps.map(a=>`<button class="app" data-go="app" data-k="${a.k}">${ICON[a.k]}${a.n}</button>`).join('')}</div>
+   <button class="hold" id="hold"><i></i>הגדרות משפחה · לחיצה ארוכה</button>
+   ${demo}`;
+  const tick=()=>{const e=document.getElementById('clk');if(e)e.textContent=new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})};
+  tick();timers.push(setInterval(tick,10000));
+  wireHold();
+}
+function person(id){
+  clearTimers();const p=S.people.find(x=>x.id==id);
+  $app.innerHTML=`
+   <button class="back" data-go="home">${ICON.back}חזרה</button>
+   <div class="hero">${avatar(p)}<h1>${esc(p.name)}</h1><div class="prel">${esc(p.rel)}</div></div>
+   <div class="actions">
+    <button class="act video" data-go="call" data-type="video" data-id="${p.id}">${ICON.video}<span>שיחת וידאו<small>${t('רואים זה את זה','רואים זה את זה')}</small></span></button>
+    <button class="act call" data-go="call" data-type="audio" data-id="${p.id}">${ICON.call}<span>שיחה רגילה<small>רק קול</small></span></button>
+    <button class="act voice" data-go="voice" data-id="${p.id}">${ICON.voice}<span>הודעה קולית<small>${t('מדברים, והיא נשלחת','מדברים, והיא נשלחת')}</small></span></button>
+   </div>${demo}`;
+}
+function call(id,type){
+  clearTimers();const p=S.people.find(x=>x.id==id);
+  const done=taskStart?((Date.now()-taskStart)/1000).toFixed(1):null;
+  log(`${type==='video'?'וידאו':'שיחה'} ל${p.name}${done?` · ${done} שנ׳ מהמסך הראשי`:''}`);taskStart=null;
+  $app.innerHTML=`
+   <div class="calling" id="cs">${avatar(p)}<h1 style="font-size:calc(40px*var(--scale))">${esc(p.name)}</h1>
+    <div class="status" id="st">${type==='video'?'מתקשרים בווידאו…':'מתקשרים…'}</div></div>
+   <div class="actions"><button class="act endb" data-go="home" data-end="1">${ICON.end}<span>${t('לסיים את השיחה','לסיים את השיחה')}</span></button></div>${demo}`;
+  timers.push(setTimeout(()=>{const cs=document.getElementById('cs');if(!cs)return;cs.classList.add('connected');let s=0;
+    const st=document.getElementById('st');const u=()=>{st.textContent=`מחוברים · ${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;s++};u();timers.push(setInterval(u,1000))},3000));
+}
+function voice(id){
+  clearTimers();const p=S.people.find(x=>x.id==id);let state='idle',sec=0;
+  const draw=()=>{
+   $app.innerHTML=`<button class="back" data-go="person" data-id="${p.id}">${ICON.back}חזרה</button>
+    <div class="hero"><h1 style="font-size:calc(32px*var(--scale))">הודעה ל${esc(p.name)}</h1></div>
+    ${state==='idle'?`<button class="rec" id="rb">${t('לחצי ודברי','לחץ ודבר')}</button><p class="status" style="text-align:center">${t('כשתסיימי, לחצי שוב','כשתסיים, לחץ שוב')}</p>`:''}
+    ${state==='rec'?`<button class="rec on" id="rb">${t('מקליטה','מקליט')}…<br>${sec} שנ׳<br><small style="font-size:.7em">${t('לחצי לסיום','לחץ לסיום')}</small></button>`:''}
+    ${state==='ready'?`<p class="status" style="text-align:center">ההודעה מוכנה · ${sec} שנ׳</p>
+      <div class="actions"><button class="act voice" id="send">${ICON.voice}<span>לשלוח ל${esc(p.name)}</span></button></div>
+      <div class="row2"><button class="plain" id="again">להקליט שוב</button><button class="plain" data-go="person" data-id="${p.id}">ביטול</button></div>`:''}
+    ${demo}`;
+   const rb=document.getElementById('rb');
+   if(rb)rb.onclick=()=>{ if(state==='idle'){state='rec';sec=0;draw();timers.push(setInterval(()=>{sec++;const b=document.getElementById('rb');if(b)b.innerHTML=`${t('מקליטה','מקליט')}…<br>${sec} שנ׳<br><small style="font-size:.7em">${t('לחצי לסיום','לחץ לסיום')}</small>`},1000))}
+     else{clearTimers();state='ready';if(!sec)sec=1;draw()}};
+   const ag=document.getElementById('again');if(ag)ag.onclick=()=>{state='idle';draw()};
+   const sd=document.getElementById('send');if(sd)sd.onclick=()=>{const done=taskStart?((Date.now()-taskStart)/1000).toFixed(1):null;
+     log(`הודעה קולית ל${p.name}${done?` · ${done} שנ׳ מהמסך הראשי`:''}`);taskStart=null;toast(`ההודעה נשלחה ל${p.name} (בהדמיה)`);home()};
+  };draw();
+}
+function family(){
+  clearTimers();
+  const misses=LOG.filter(l=>l.miss).length, tasks=LOG.filter(l=>!l.miss).length;
+  $app.innerHTML=`<div class="fam">
+   <button class="back" data-go="home" style="font-size:20px">${ICON.back}חזרה למסך הראשי</button>
+   <h1>הגדרות משפחה</h1>
+   <div class="card"><h2>יומן בדיקה</h2>
+    <div class="stats"><div><b>${tasks}</b>משימות</div><div><b>${misses}</b>החטאות</div><div><b>${LOG.filter(l=>l.msg.startsWith('חזרה')).length}</b>חזרות אחורה</div></div>
+    <ul class="log">${LOG.map(l=>`<li class="${l.miss?'miss':''}">${l.t} · ${esc(l.msg)}</li>`).join('')||'<li>עוד אין רישומים. תן לה להשתמש, ותחזור לכאן.</li>'}</ul>
+    <button class="sbtn" id="clr">איפוס היומן</button></div>
+   <div class="card"><h2>אנשים</h2>
+    ${S.people.map(p=>`<div class="edit">${avatar(p)}<input type="text" id="n${p.id}" value="${esc(p.name)}" aria-label="שם">
+      <span></span><input type="text" id="r${p.id}" value="${esc(p.rel)}" aria-label="קשר">
+      <div class="ctl"><label class="sbtn">תמונה<input type="file" accept="image/*" id="f${p.id}" hidden></label>
+      ${p.photo?`<button class="sbtn" data-rmph="${p.id}">הסרת תמונה</button>`:''}
+      <button class="sbtn danger" data-del="${p.id}">מחיקה</button></div></div>`).join('')}
+    ${S.people.length<8?'<button class="sbtn" id="add">הוספת אדם</button>':''}</div>
+   <div class="card"><h2>תצוגה ופנייה</h2>
+    <div>גודל טקסט</div><div class="seg">${[[1,'גדול'],[1.15,'גדול מאוד'],[1.3,'ענק']].map(([v,n])=>`<button data-scale="${v}" aria-pressed="${S.scale==v}">${n}</button>`).join('')}</div>
+    <div>פנייה</div><div class="seg"><button data-fem="1" aria-pressed="${S.fem}">נקבה</button><button data-fem="0" aria-pressed="${!S.fem}">זכר</button></div>
+    <div>הגנה מלחיצה כפולה</div><div class="seg"><button data-guard="1" aria-pressed="${S.guard}">פעילה</button><button data-guard="0" aria-pressed="${!S.guard}">כבויה</button></div>
+   </div>
+   <button class="sbtn danger" id="reset">חזרה להגדרות ההתחלה</button>
+  </div>`;
+  S.people.forEach(p=>{
+    document.getElementById('n'+p.id).onchange=e=>{p.name=e.target.value.trim()||p.name;save()};
+    document.getElementById('r'+p.id).onchange=e=>{p.rel=e.target.value.trim();save()};
+    document.getElementById('f'+p.id).onchange=e=>{const f=e.target.files[0];if(!f)return;shrink(f,url=>{p.photo=url;save();family()})};
+  });
+  const q=(s,fn)=>{const el=document.getElementById(s);if(el)el.onclick=fn};
+  q('clr',()=>{LOG=[];family()});
+  q('add',()=>{const id=Math.max(0,...S.people.map(p=>p.id))+1;S.people.push({id,name:'שם חדש',rel:'',photo:''});save();family()});
+  q('reset',()=>{S=structuredClone(DEFAULT);save();document.documentElement.style.setProperty('--scale',1);family()});
+}
+function shrink(file,cb){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');const s=320;c.width=c.height=s;
+  const m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);cb(c.toDataURL('image/jpeg',.82))};im.src=r.result};r.readAsDataURL(file)}
+
+function wireHold(){const b=document.getElementById('hold');let h;
+  const start=e=>{e.preventDefault();b.classList.add('going');h=setTimeout(()=>{b.classList.remove('going');family()},2000)};
+  const stop=()=>{clearTimeout(h);b.classList.remove('going')};
+  b.addEventListener('pointerdown',start);['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,stop));
+  b.addEventListener('contextmenu',e=>e.preventDefault())}
+
+/* navigation, double-tap guard, miss logging */
+let lastTap=0;
+$app.addEventListener('pointerdown',e=>{
+  const onFamily=!!$app.querySelector('.fam');
+  if(onFamily)return;
+  if(!e.target.closest('button,label,input')){log('לחיצה מחוץ לכפתור',true);const f=document.getElementById('flash');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),60)}
+});
+$app.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.scale){S.scale=+b.dataset.scale;document.documentElement.style.setProperty('--scale',S.scale);save();family();return}
+  if(b.dataset.fem){S.fem=b.dataset.fem==='1';save();family();return}
+  if(b.dataset.guard){S.guard=b.dataset.guard==='1';save();family();return}
+  if(b.dataset.del){S.people=S.people.filter(p=>p.id!=b.dataset.del);save();family();return}
+  if(b.dataset.rmph){S.people.find(p=>p.id==b.dataset.rmph).photo='';save();family();return}
+  const go=b.dataset.go;if(!go)return;
+  const tnow=Date.now();
+  if(S.guard&&tnow-lastTap<700){log('לחיצה כפולה נחסמה',true);return}
+  lastTap=tnow;
+  if(go==='home'){ if(b.dataset.end)log('סיום שיחה'); else log('חזרה אחורה'); taskStart=null; home()}
+  else if(go==='person'){ if(!$app.querySelector('.rec,.plain'))taskStart=taskStart||Date.now(); else log('חזרה אחורה'); person(b.dataset.id)}
+  else if(go==='call')call(b.dataset.id,b.dataset.type);
+  else if(go==='voice')voice(b.dataset.id);
+  else if(go==='app'){const a=S.apps.find(x=>x.k===b.dataset.k);log(`פתיחת ${a.n}`);toast(`כאן תיפתח אפליקציית ה${a.n}`)}
+});
+home();
+</script>
+
+</body>
+</html>
